@@ -5,7 +5,8 @@ RUN apt-get update \
   && cd /tmp \
   && git clone --branch v${ELECTRS_VERSION} https://github.com/romanz/electrs.git \
   && cd electrs \ 
-  && wget -O - https://romanzey.de/pgp.txt | gpg --import \
+  && wget https://romanzey.de/pgp.txt \
+  && gpg --import pgp.txt \
   && git verify-tag v${ELECTRS_VERSION} \
   && cargo build --no-default-features --locked --release \
   && gzexe target/release/electrs \
