@@ -1,7 +1,7 @@
 FROM debian:stable-slim AS build
 ARG TOR_VERSION
 RUN apt-get update \
-  && apt-get install build-essential automake libevent-dev libssl-dev zlib1g-dev git wget -y \
+  && apt-get install build-essential automake libevent-dev libssl-dev zlib1g-dev git gpg wget -y \
   && cd /tmp \
   # One or many of these keys can sign the releases. Verificable in https://gitlab.torproject.org/dgoulet/tor
   && wget https://keys.openpgp.org/vks/v1/by-fingerprint/1C1BC007A9F607AA8152C040BEA7B180B1491921 \
@@ -22,7 +22,7 @@ RUN apt-get update \
     --with-zlib-dir=$(dirname $(dpkg -L zlib1g-dev | grep libz.a)) \
   && make \
   && gzexe src/app/tor \
-  && apt-get remove build-essential automake libevent-dev libssl-dev zlib1g-dev git wget -y
+  && apt-get remove build-essential automake libevent-dev libssl-dev zlib1g-dev git gpg wget -y
 
 
 FROM debian:stable-slim
