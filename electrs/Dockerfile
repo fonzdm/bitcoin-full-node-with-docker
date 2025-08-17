@@ -1,7 +1,7 @@
 FROM debian:stable-slim AS build
 ARG ELECTRS_VERSION
 RUN apt-get update \
-  && apt-get install build-essential cargo cmake clang git wget -y \
+  && apt-get install build-essential cargo cmake clang git gpg wget -y \
   && cd /tmp \
   && git clone --branch v${ELECTRS_VERSION} https://github.com/romanz/electrs.git \
   && cd electrs \ 
@@ -10,7 +10,7 @@ RUN apt-get update \
   && git verify-tag v${ELECTRS_VERSION} \
   && cargo build --no-default-features --locked --release \
   && gzexe target/release/electrs \
-  && apt-get remove build-essential cargo cmake clang git wget -y
+  && apt-get remove build-essential cargo cmake clang git gpg wget -y
 
 
 FROM debian:stable-slim
