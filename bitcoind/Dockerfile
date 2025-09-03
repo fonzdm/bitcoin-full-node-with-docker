@@ -17,7 +17,7 @@ RUN apt-get update \
   && cd bitcoin \
   && git verify-tag v${BITCOIN_VERSION} \
   && cd depends \
-  && make HOST=$(gcc -dumpmachine) NO_BDB=1 NO_QT=1 NO_QR=1 NO_SQLITE=1 NO_NATPMP=1 NO_UPNP=1 NO_ZMQ=1 NO_USDT=1 NO_WALLET=1 NO_HARDEN=1 \
+  && make HOST=$(gcc -dumpmachine) NO_BDB=1 NO_QT=1 NO_QR=1 NO_SQLITE=1 NO_NATPMP=1 NO_UPNP=1 NO_USDT=1 NO_WALLET=1 NO_HARDEN=1 \
   && cd .. \
   && ./autogen.sh \
   && ./configure \
@@ -30,6 +30,8 @@ RUN apt-get update \
     --disable-tests \
     --enable-reduce-exports \
     --without-utils \
+    --with-zmq \
+    --enable-zmq \
   && make \
   && gzexe src/bitcoind \
   && apt-get remove automake autotools-dev bsdmainutils build-essential cmake curl git libtool pkg-config -y
