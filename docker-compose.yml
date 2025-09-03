@@ -98,6 +98,24 @@ services:
       default:
         ipv4_address: 172.18.0.7
 
+  lnd:
+    image: lnd:$LND_VERSION
+    command: lnd --wallet-unlock-password-file=/home/lnd/.lnd/.pass
+    depends_on:
+      - tor
+      - bitcoind
+    build:
+      context: ./lnd
+      args:
+        - LND_VERSION=$LND_VERSION
+        - LND_USER_ID=$LND_USER_ID
+        - GROUP_ID=$SHARED_GID
+    volumes:
+      - $LND_DATA:/home/lnd/.lnd
+    restart: unless-stopped
+    networks:
+      default:
+        ipv4_address: 172.18.0.8
 networks:
   default:
     ipam:
