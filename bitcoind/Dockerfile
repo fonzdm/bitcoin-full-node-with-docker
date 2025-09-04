@@ -29,7 +29,7 @@ RUN apt-get update \
   && make HOST=$(gcc -dumpmachine) NO_BDB=1 NO_QT=1 NO_QR=1 NO_SQLITE=1 NO_NATPMP=1 NO_UPNP=1 NO_USDT=1 NO_WALLET=1 NO_HARDEN=1 \
   \
   # Build Bitcoin Core using CMake
-  && cd .. \
+  && cd /tmp/bitcoin \
   && mkdir build \
   && cd build \
   && cmake .. \
