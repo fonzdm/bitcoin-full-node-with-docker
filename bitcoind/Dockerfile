@@ -1,14 +1,7 @@
 FROM debian:stable-slim AS build
 ARG BITCOIN_VERSION
 RUN apt-get update \
-  && apt-get install -y \
-    build-essential \
-    cmake \
-    curl \
-    git \
-    gpg \
-    ninja-build \
-    pkg-config \
+  && apt-get install automake autotools-dev bsdmainutils build-essential cmake curl git libtool pkg-config -y \
   && cd /tmp \
   && curl \
     -O https://raw.githubusercontent.com/bitcoin-core/guix.sigs/main/builder-keys/achow101.gpg \
@@ -23,42 +16,31 @@ RUN apt-get update \
   && git clone -b v${BITCOIN_VERSION} https://github.com/bitcoin/bitcoin.git \
   && cd bitcoin \
   && git verify-tag v${BITCOIN_VERSION} \
-  \
-  # Build depends
   && cd depends \
   && make HOST=$(gcc -dumpmachine) NO_BDB=1 NO_QT=1 NO_QR=1 NO_SQLITE=1 NO_NATPMP=1 NO_UPNP=1 NO_USDT=1 NO_WALLET=1 NO_HARDEN=1 \
-  \
-  # Build Bitcoin Core using CMake
-  && cd /tmp/bitcoin \
-  && mkdir build \
-  && cd build \
-  && cmake .. \
-    -GNinja \
-    -DCMAKE_TOOLCHAIN_FILE=../depends/$(gcc -dumpmachine)/share/toolchain.cmake \
-    -DCMAKE_INSTALL_PREFIX=../depends/$(gcc -dumpmachine) \
-    -DBUILD_BITCOIN_CLI=ON \
-    -DBUILD_BITCOIN_QT=OFF \
-    -DBUILD_BITCOIN_UTILS=OFF \
-    -DBUILD_TESTS=OFF \
-    -DBUILD_BENCH=OFF \
-    -DENABLE_MAN=OFF \
-    -DENABLE_EXTERNAL_SIGNER=OFF \
-    -DENABLE_ZMQ=ON \
-    -DENABLE_WALLET=OFF \
-    -DENABLE_USDT=OFF \
-    -DENABLE_UPNP=OFF \
-    -DENABLE_NATPMP=OFF \
-    -DENABLE_REDUCE_EXPORTS=ON \
-  && ninja src/bitcoind src/bitcoin-cli \
-  && strip src/bitcoind src/bitcoin-cli \
-  && apt-get remove -y build-essential cmake curl git gpg ninja-build pkg-config
+  && cd .. \
+  && ./autogen.sh \
+  && ./configure \
+    --prefix=$PWD/depends/$(gcc -dumpmachine) LDFLAGS="-static-libstdc++ -s" \
+    --disable-bench \
+    --disable-cli \
+    --disable-external-signer \
+    --disable-fuzz-binary \
+    --disable-man \
+    --disable-tests \
+    --enable-reduce-exports \
+    --without-utils \
+    --with-zmq \
+    --enable-zmq \
+  && make \
+  && gzexe src/bitcoind \
+  && apt-get remove automake autotools-dev bsdmainutils build-essential cmake curl git libtool pkg-config -y
 
 
 FROM debian:stable-slim
 ARG BITCOIN_USER_ID
 ARG GROUP_ID
-COPY --from=build /tmp/bitcoin/build/src/bitcoind /usr/local/bin/bitcoind
-COPY --from=build /tmp/bitcoin/build/src/bitcoin-cli /usr/local/bin/bitcoin-cli
+COPY --from=build /tmp/bitcoin/src/bitcoind /usr/local/bin/bitcoind
 RUN addgroup --gid ${GROUP_ID} bitcoin \
   && adduser -u ${BITCOIN_USER_ID} --disabled-password --gecos "" --ingroup bitcoin bitcoin \
   && mkdir /home/bitcoin/.bitcoin \
@@ -66,4 +48,4 @@ RUN addgroup --gid ${GROUP_ID} bitcoin \
 
 USER bitcoin
 
-CMD ["bitcoind"]
+CMD bitcoind
